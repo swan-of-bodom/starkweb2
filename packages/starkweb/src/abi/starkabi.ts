@@ -1,4 +1,13 @@
-import type { StarknetAbiFunction, StarknetAbiEvent, StarknetAbiInterface, StarknetType, StarknetStruct, StarknetEnum, AbiParameter, StarknetCoreType } from "./types.js";
+import type {
+  AbiParameter,
+  StarknetAbiEvent,
+  StarknetAbiFunction,
+  StarknetAbiInterface,
+  StarknetCoreType,
+  StarknetEnum,
+  StarknetStruct,
+  StarknetType,
+} from "./types.js";
 
 export function parseStarknetAbi<const T extends readonly any[]>(abi: T): {
   functions: ReadonlyArray<StarknetAbiFunction<T[number]['name']>>,
@@ -14,27 +23,28 @@ export function parseStarknetAbi<const T extends readonly any[]>(abi: T): {
   const enums: StarknetEnum[] = [];
 
   for (const item of abi) {
-    switch (item.type) {
+    const abiItem = item as any;
+    switch (abiItem.type) {
       case 'function':
         functions.push({
           type: 'function',
-          name: item.name,
-          inputs: item.inputs?.map(parseAbiParameter) || [],
-          outputs: item.outputs?.map(parseAbiParameter) || []
+          name: abiItem.name,
+          inputs: abiItem.inputs?.map(parseAbiParameter) || [],
+          outputs: abiItem.outputs?.map(parseAbiParameter) || []
         });
         break;
       case 'event':
         events.push({
-          type: 'event', 
-          name: item.name,
-          inputs: item.inputs?.map(parseAbiParameter) || [],
+          type: 'event',
+          name: abiItem.name,
+          inputs: abiItem.inputs?.map(parseAbiParameter) || [],
           kind: 'enum',
           variants: []
         });
         break;
-      case 'interface':
+      case 'interface': {
         // Parse functions from interface to ensure inputs/outputs are properly typed
-        const interfaceFunctions = item.items
+        const interfaceFunctions = abiItem.items
           .filter((i: any) => i.type === 'function')
           .map((f: any) => ({
             type: 'function' as const,
@@ -44,7 +54,7 @@ export function parseStarknetAbi<const T extends readonly any[]>(abi: T): {
           }));
         functions.push(...interfaceFunctions);
 
-        const interfaceEvents = item.items
+        const interfaceEvents = abiItem.items
           .filter((i: any) => i.type === 'event')
           .map((e: any) => ({
             type: 'event' as const,
@@ -56,22 +66,23 @@ export function parseStarknetAbi<const T extends readonly any[]>(abi: T): {
         events.push(...interfaceEvents);
 
         interfaces.push({
-          name: item.name,
-          items: item.items?.map(parseAbiParameter) || []
+          name: abiItem.name,
+          items: abiItem.items?.map(parseAbiParameter) || []
         });
         break;
+      }
       case 'struct':
         structs.push({
           type: 'struct',
-          name: item.name,
-          members: item.members?.map(parseAbiParameter) || []
+          name: abiItem.name,
+          members: abiItem.members?.map(parseAbiParameter) || []
         });
         break;
       case 'enum':
         enums.push({
           type: 'enum',
-          name: item.name,
-          variants: item.variants?.map(parseAbiParameter) || []
+          name: abiItem.name,
+          variants: abiItem.variants?.map(parseAbiParameter) || []
         });
         break;
     }
@@ -85,10 +96,11 @@ export function parseStarknetAbi<const T extends readonly any[]>(abi: T): {
   };
 }
 
-function parseAbiParameter(param: any): AbiParameter {
+function parseAbiParameter(param: unknown): AbiParameter {
+  const p = param as { name: string; type: string };
   return {
-    name: param.name,
-    type: parseType(param.type)
+    name: p.name,
+    type: parseType(p.type)
   };
 }
 

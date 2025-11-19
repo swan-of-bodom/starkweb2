@@ -1,5 +1,6 @@
 import { type StarknetType, type AbiParameter, type StarknetStruct, type StarknetCoreType } from './types.js';
 import { BigNumber } from '@0x/utils';
+import { parseType } from './starkabi.js';
 
 export function decodeFromTypes(
   types: StarknetType[],
@@ -19,13 +20,14 @@ export function decodeFromTypes(
 
 export function decodeFromParams(
   params: AbiParameter[],
-  values: BigNumber[]
+  values: BigNumber[],
+  structs: Map<string, StarknetStruct> = new Map()
 ): Record<string, any> {
   let offset = 0;
   const result: Record<string, any> = {};
 
   for (const param of params) {
-    const [value, newOffset] = decodeCoreType(param.type, values, offset);
+    const [value, newOffset] = decodeCoreType(param.type, values, offset, structs);
     result[param.name ?? 'data'] = value;
     offset = newOffset;
   }
@@ -42,11 +44,13 @@ export function decodeCoreType(
   if (typeof type === 'object' && type.type === 'struct') {
     const structDef = structs.get(type.name);
     if (!structDef) throw new Error(`Undefined struct: ${type.name}`);
-    
+
     const result: Record<string, any> = {};
     for (const member of structDef.members) {
+      // Parse the member type string to StarknetType
+      const parsedType = parseType(member.type as string);
       const [value, newOffset] = decodeCoreType(
-        member.type as StarknetType,
+        parsedType,
         values,
         offset,
         structs
@@ -125,7 +129,7 @@ export function decodeCoreType(
 
 function isArrayType(type: StarknetType): type is { type: 'array', elementType: StarknetCoreType } {
   return typeof type === 'object' && 'type' in type && type.type === 'array';
-} 
+}
 
 // function decodeFunctionResult<T>(type: T, values: BigNumber[]): T {
 //   const [value, newOffset] = decodeCoreType(type, values, 0);
