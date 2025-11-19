@@ -25,10 +25,15 @@ export type AbiParameterKind = 'inputs' | 'outputs';
 interface PrimitiveTypeLookup {
     'core::felt252': { inputs: 'felt252'; outputs: 'felt252' };
     'core::integer::u8': { inputs: number; outputs: number };
+    'core::integer::i8': { inputs: number; outputs: number };
     'core::integer::u16': { inputs: number; outputs: number };
+    'core::integer::i16': { inputs: number; outputs: number };
     'core::integer::u32': { inputs: number; outputs: number };
+    'core::integer::i32': { inputs: number; outputs: number };
     'core::integer::u64': { inputs: bigint; outputs: bigint };
+    'core::integer::i64': { inputs: bigint; outputs: bigint };
     'core::integer::u128': { inputs: bigint; outputs: bigint };
+    'core::integer::i128': { inputs: bigint; outputs: bigint };
     'core::integer::u256': { inputs: Uint256; outputs: Uint256 };
     'core::integer::u512': { inputs: Uint512; outputs: Uint512 };
     'core::array::Array<T>': { inputs: 'T[]'; outputs: 'T[]' };

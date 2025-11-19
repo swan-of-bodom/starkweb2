@@ -84,18 +84,28 @@ export function decodeCoreType(
       return [values[offset]?.toNumber() !== 0, offset + 1];
     case 'u8':
     case 'core::integer::u8':
+    case 'i8':
+    case 'core::integer::i8':
     case 'u16':
     case 'core::integer::u16':
+    case 'i16':
+    case 'core::integer::i16':
     case 'u32':
     case 'core::integer::u32':
+    case 'i32':
+    case 'core::integer::i32':
       if (!values[offset]) {
         throw new Error(`Invalid ${type} value`);
       }
       return [values[offset]?.toNumber() || 0, offset + 1];
     case 'u64':
     case 'core::integer::u64':
+    case 'i64':
+    case 'core::integer::i64':
     case 'u128':
     case 'core::integer::u128':
+    case 'i128':
+    case 'core::integer::i128':
       if (!values[offset]) {
         throw new Error(`Invalid ${type} value`);
       }
