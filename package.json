@@ -1,9 +1,9 @@
 {
-    "name": "starkweb",
+    "name": "starkweb2",
     "version": "0.0.1",
     "private": true,
     "type": "module",
-    "repository": "https://github.com/NethermindEth/starkweb",
+    "repository": "https://github.com/swan-of-bodom/starkweb2",
     "license": "MIT",
     "scripts": {
         "preinstall": "npx only-allow pnpm",
