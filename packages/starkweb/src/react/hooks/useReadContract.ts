@@ -49,7 +49,7 @@ export function useReadContract<
   const chainId = useChainId({ config })
   const options = readContractQueryOptions<abi, functionName>(
     config,
-    { ...parameters, chainId } as ReadContractOptions<abi, functionName>
+    { ...parameters, chainId } as unknown as ReadContractOptions<abi, functionName>
   )
 
   return useQuery(options) as UseReadContractReturnType<abi, functionName>

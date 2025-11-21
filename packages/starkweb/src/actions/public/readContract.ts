@@ -1,7 +1,6 @@
 import { decodeFunctionCall } from '../../abi/output.js';
 import type {
   ContractFunctionArgs,
-  ContractFunctionParameters,
   ContractFunctionReturnType,
 } from '../../abi/parser.js';
 import type { Client } from '../../clients/createClient.js';
@@ -36,14 +35,11 @@ export type PrimaryReadContractParameters<
     'view',
     functionName
   >,
-  allFunctionNames = ContractFunctionName<abi, 'view'>
-> = ContractFunctionParameters<
-  abi,
-  'view',
-  functionName,
-  allFunctionNames,
-  args
->
+> = {
+  address: string
+  abi: abi
+  functionName: functionName
+} & (readonly [] extends args ? { args?: args } : { args: args })
 
 export type SecondaryReadContractParameters =
   | {
@@ -68,26 +64,21 @@ export type SecondaryReadContractParameters =
     }
 
 export type ReadContractParameters<
-  TAbi extends Abi | readonly unknown[] = Abi,
-  TFunctionName extends ContractFunctionName<
-    TAbi,
+  abi extends Abi | readonly unknown[] = Abi,
+  functionName extends ContractFunctionName<
+    abi,
     'view'
-  > = ContractFunctionName<TAbi, 'view'>,
-  TArgs extends ContractFunctionArgs<
-    TAbi,
+  > = ContractFunctionName<abi, 'view'>,
+  args extends ContractFunctionArgs<
+    abi,
     'view',
-    TFunctionName
-  > = ContractFunctionArgs<
-    TAbi,
-    'view',
-    TFunctionName
-  >,
+    functionName
+  > = ContractFunctionArgs<abi, 'view', functionName>,
 > = {
   address: string
-  abi: TAbi
-  functionName: TFunctionName
-  args?: TArgs
-} & SecondaryReadContractParameters
+  abi: abi
+  functionName: functionName
+} & (readonly [] extends args ? { args?: args } : { args: args }) & SecondaryReadContractParameters
 
 export type ReadContractReturnType<
   abi extends Abi | readonly unknown[],
