@@ -1,6 +1,6 @@
 {
     "name": "starkweb2",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "private": false,
     "type": "module",
     "main": "./dist/cjs/exports/starkweb.js",
@@ -9,7 +9,7 @@
     "typings": "./dist/types/exports/starkweb.d.ts",
     "repository": {
         "type": "git",
-        "url": "https://github.com/NethermindEth/starkweb"
+        "url": "https://github.com/swan-of-bodom/starkweb2"
     },
     "exports": {
         ".": {
