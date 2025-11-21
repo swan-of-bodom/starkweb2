@@ -8,3 +8,13 @@ Fork of [starkweb](https://github.com/NethermindEth/starkweb) adding support for
 - Support for all Starknet integer types (u8, u16, u32, u64, u128)
 - Improved struct and type parsing in decoder
 - Fixed u256/u512 output types
+
+## Installation
+
+```bash
+npm install starkweb2
+```
+
+## Usage
+
+Same API as starkweb - see https://github.com/NethermindEth/starkweb.
