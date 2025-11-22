@@ -146,7 +146,9 @@ export function parseType(typeStr: string | StarknetType): StarknetType {
       'u128', 'core::integer::u128',
       'i128', 'core::integer::i128',
       'u256', 'core::integer::u256', 'uint256',
-      'contract_address', 'core::starknet::contract_address::ContractAddress'
+      'contract_address', 'core::starknet::contract_address::ContractAddress',
+      'bytes31', 'core::bytes_31::bytes31',
+      'ByteArray', 'core::byte_array::ByteArray'
     ];
 
     if (primitiveTypes.includes(typeStr)) {

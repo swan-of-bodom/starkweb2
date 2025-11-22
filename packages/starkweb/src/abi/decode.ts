@@ -1,6 +1,6 @@
-import { type StarknetType, type AbiParameter, type StarknetStruct, type StarknetCoreType } from './types.js';
-import { BigNumber } from '@0x/utils';
 import { parseType } from './starkabi.js';
+import type { AbiParameter, StarknetStruct, StarknetType, StarknetCoreType } from './types.js';
+import type { BigNumber } from '@0x/utils';
 
 export function decodeFromTypes(
   types: StarknetType[],
@@ -35,6 +35,7 @@ export function decodeFromParams(
   return result;
 }
 
+// WARN: This is a mess and should be re-worked
 export function decodeCoreType(
   type: StarknetType,
   values: BigNumber[],
@@ -121,17 +122,100 @@ export function decodeCoreType(
         offset + 2
       ];
     case 'felt':
-    case 'core::felt252':
+    case 'core::felt252': {
       if (!values[offset]) {
         throw new Error('Invalid Felt value');
       }
-      return [`0x${BigInt(values[offset]?.toString() || '0').toString(16)}`, offset + 1];
+      const feltValue = BigInt(values[offset]?.toString() || '0');
+
+      // Check if this looks like a ByteArray instead of ShortString
+      const possibleDataLen = Number(feltValue);
+      if (possibleDataLen <= 10 && values.length >= offset + 3) {
+        // Check if the pattern looks like ByteArray: small dataLen, followed by pending_word_len < 32
+        const possiblePendingWordLen = Number(values[offset + 2 + possibleDataLen]?.toString() || '0');
+
+        if (possiblePendingWordLen > 0 && possiblePendingWordLen <= 31) {
+          // probably ByteArray?
+          const dataLen = possibleDataLen;
+          let currentOffset = offset + 1;
+          const dataChunks: bigint[] = [];
+          for (let i = 0; i < dataLen; i++) {
+            if (values[currentOffset]) {
+              dataChunks.push(BigInt(values[currentOffset]?.toString() || '0'));
+            }
+            currentOffset++;
+          }
+
+          const pendingWord = BigInt(values[currentOffset]?.toString() || '0');
+          currentOffset++;
+          const pendingWordLen = possiblePendingWordLen;
+          currentOffset++;
+
+          const hexString = byteArrayToHex(dataChunks, pendingWord, pendingWordLen);
+          return [hexString, currentOffset];
+        }
+      }
+      return [`0x${feltValue.toString(16)}`, offset + 1];
+    }
     case 'contract_address':
     case 'core::starknet::contract_address::ContractAddress':
       if (!values[offset]) {
         throw new Error('Invalid Contract Address value');
       }
       return [`0x${BigInt(values[offset]?.toString() || '0').toString(16)}`, offset + 1];
+    case 'bytes31':
+    case 'core::bytes_31::bytes31':
+      // bytes31 is a single felt252 containing up to 31 bytes
+      if (!values[offset]) {
+        throw new Error('Invalid bytes31 value');
+      }
+      return [BigInt(values[offset]?.toString() || '0'), offset + 1];
+    case 'ByteArray':
+    case 'core::byte_array::ByteArray': {
+      // ByteArray layout: [data_len, ...data (bytes31[]), pending_word, pending_word_len]
+      if (!values[offset]) {
+        throw new Error('Invalid ByteArray: missing data_len');
+      }
+
+      const firstValue = BigInt(values[offset]?.toString() || '0');
+      const dataLen = Number(firstValue);
+
+      // Check if this looks like a short string instead of ByteArray
+      if (dataLen > 1000 || !Number.isFinite(dataLen)) {
+        // Return as hex felt252
+        return [`0x${firstValue.toString(16)}`, offset + 1];
+      }
+
+      const expectedLength = offset + 1 + dataLen + 2;
+      if (values.length < expectedLength) {
+        return [`0x${firstValue.toString(16)}`, offset + 1];
+      }
+
+      let currentOffset = offset + 1;
+
+      const dataChunks: bigint[] = [];
+      for (let i = 0; i < dataLen; i++) {
+        if (!values[currentOffset]) {
+          // Fallback for no values, something is wrong i think
+          return [`0x${firstValue.toString(16)}`, offset + 1];
+        }
+        dataChunks.push(BigInt(values[currentOffset]?.toString() || '0'));
+        currentOffset++;
+      }
+
+      // Get pending_word and pending_word_len
+      if (!values[currentOffset]) return [`0x${firstValue.toString(16)}`, offset + 1];
+      const pendingWord = BigInt(values[currentOffset]?.toString() || '0');
+      currentOffset++;
+
+      if (!values[currentOffset]) return [`0x${firstValue.toString(16)}`, offset + 1];
+      const pendingWordLen = Number(values[currentOffset]?.toString() || '0');
+      currentOffset++;
+
+      // Convert ByteArray to hex string (concatenated bytes)
+      const hexString = byteArrayToHex(dataChunks, pendingWord, pendingWordLen);
+      return [hexString, currentOffset];
+    }
     default:
       throw new Error(`Unsupported type: ${type}`);
   }
@@ -141,15 +225,37 @@ function isArrayType(type: StarknetType): type is { type: 'array', elementType: 
   return typeof type === 'object' && 'type' in type && type.type === 'array';
 }
 
-// function decodeFunctionResult<T>(type: T, values: BigNumber[]): T {
-//   const [value, newOffset] = decodeCoreType(type, values, 0);
-//   return value;
-// }
+/**
+ * Convert a ByteArray to hex string
+ */
+function byteArrayToHex(
+  dataChunks: bigint[],
+  pendingWord: bigint,
+  pendingWordLen: number
+): string {
+  const bytes: number[] = [];
+  for (const chunk of dataChunks) {
+    const chunkBytes = bigintToBytes(chunk, 31);
+    bytes.push(...chunkBytes);
+  }
+  if (pendingWordLen > 0) {
+    const pendingBytes = bigintToBytes(pendingWord, pendingWordLen);
+    bytes.push(...pendingBytes);
+  }
 
-// export function decodeFunctionResult(
-//   values: string[],
-//   outputs: { type: string }[]
-// ) {
-//   const types = outputs.map(output => TypeMap[output.type as keyof typeof TypeMap]);
-//   return decodeFromTypes(types, values.map(v => new BigNumber(v)));
-// }
+  // Convert bytes to hex string
+  return `0x${bytes.map(b => b.toString(16).padStart(2, '0')).join('')}`
+}
+
+/** 
+ * Convert a bigint to a byte array of specified length (big-endian) 
+ */
+function bigintToBytes(value: bigint, length: number): number[] {
+  const bytes: number[] = [];
+  let remaining = value;
+  for (let i = 0; i < length; i++) {
+    bytes.unshift(Number(remaining & 0xffn));
+    remaining >>= 8n;
+  }
+  return bytes;
+}

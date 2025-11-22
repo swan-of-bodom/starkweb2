@@ -13,6 +13,8 @@ export type StarknetCoreType =
   | 'i128' | 'core::integer::i128'
   | 'u256' | 'core::integer::u256' | 'uint256'
   | 'contract_address' | 'core::starknet::contract_address::ContractAddress'
+  | 'bytes31' | 'core::bytes_31::bytes31'
+  | 'ByteArray' | 'core::byte_array::ByteArray'
   
   
   

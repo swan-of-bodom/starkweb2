@@ -41,6 +41,8 @@ interface PrimitiveTypeLookup {
     'core::starknet::contract_address::ContractAddress': { inputs: Address; outputs: Address };
     'core::string::String': { inputs: string; outputs: string };
     'core::starknet::class_hash::ClassHash': { inputs: string; outputs: string };
+    'core::byte_array::ByteArray': { inputs: 'felt252'; outputs: 'felt252' };
+    'core::bytes_31::bytes31': { inputs: bigint; outputs: bigint };
     tuple: Record<string, unknown>;
 }
 
