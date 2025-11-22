@@ -144,7 +144,12 @@ export function decodeShortString(str: string): string {
     )
   }
   if (isDecimalString(str)) {
-    return decodeShortString('0X'.concat(BigInt(str).toString(16)))
+    return decodeShortString('0x'.concat(BigInt(str).toString(16)))
+  }
+  // Handle hex string without 0x prefix
+  if (/^[0-9a-f]+$/i.test(str)) {
+    console.log("STR: ", str);
+    return decodeShortString(`0x${str}`)
   }
   throw new Error(`${str} is not Hex or decimal`)
 }
