@@ -153,7 +153,7 @@
         }
     },
     "devDependencies": {
-        "@stablelib/random": "^2.0.0",
+        "@stablelib/random": "^1.0.2",
         "@types/cross-spawn": "^6.0.6",
         "@types/prompts": "^2.4.9",
         "@types/react": "^18",
@@ -163,6 +163,7 @@
         "typescript": "^5.6.3"
     },
     "dependencies": {
+        "@stablelib/random": "^1.0.2",
         "@0x/utils": "latest",
         "@adraffy/ens-normalize": "1.10.0",
         "@module-federation/enhanced": "^0.8.10",
