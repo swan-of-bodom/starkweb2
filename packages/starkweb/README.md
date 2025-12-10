@@ -1,6 +1,6 @@
 # Starkweb2
 
-Fork of [starkweb](https://github.com/NethermindEth/starkweb) adding support for starknet-camel indexer.
+Fork of [starkweb](https://github.com/NethermindEth/starkweb) adding support for starknet-ponder indexer.
 
 ## Changes from starkweb
 
