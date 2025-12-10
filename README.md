@@ -8,6 +8,8 @@ Fork of [starkweb](https://github.com/NethermindEth/starkweb) adding support for
 
 ## Changes from starkweb
 
+Minimal updates have been done to `packages/starkweb`. These include:
+
 - Support for signed integer types (i8, i16, i32, i64, i128)
 - Support for all Starknet integer types (u8, u16, u32, u64, u128)
 - Improved struct and type parsing in decoder
