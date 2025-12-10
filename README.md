@@ -1,3 +1,7 @@
+> [!WARNING]  
+> This has only been tested for use of starknet-ponder and should not be used in production.
+
+
 # Starkweb2
 
 Fork of [starkweb](https://github.com/NethermindEth/starkweb) adding support for starknet-ponder indexer.
